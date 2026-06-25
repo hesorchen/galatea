@@ -117,7 +117,7 @@ git 约定（见 `templates/gitignore.template`）：
 
 ```bash
 nohup bash engine/loop.sh \
-    <目标专属目录> <最大轮数> \
+    <目标专属目录> [最大轮数] \
     > <目标专属目录>/logs/engine.log 2>&1 &
 ```
 
@@ -201,7 +201,7 @@ nohup bash engine/loop.sh \
 即：**所谓「A 读 B 的方案」，物理上是 orchestrator 把 B 写的文件注入到一个新起的 sub-agent 的 prompt 里**。每一轮交叉评审 = 一次带着对方产物的**重新 spawn**，不是一段持续对话。对抗式验收同理（Prosecutor / Defender 各写 `review-*.md`，orchestrator 注入对方观点再 spawn 一轮）。
 
 约定：
-- 对抗产物（`plan-a.md` / `plan-b.md` / `critique.md` / `review-*.md`）是**临时的**，落在本轮 scratch 目录（如 `logs/round-<n>/`），不进最终交付物。
+- 对抗产物（`plan-a.md` / `plan-b.md` / `critique.md` / `review-*.md`）是**临时的**，落在本轮 scratch 目录（如 `logs/round-<NNNN>/`），不进最终交付物。
 - **不依赖** harness 专属的「带上下文续跑同一 agent」能力（如本环境的 SendMessage）——一律用「fresh spawn + 文件注入」，保证在通用 Claude Code / Codex 上都能跑。
 
 # 环境安全红线（不可逾越）
@@ -242,5 +242,8 @@ galatea 默认在 `--dangerously-skip-permissions` 下无人值守运行——**
 | `finalize-prompt.md` | 收尾指令，引擎退出时跑一次以生成总览 | Phase 0 生成 |
 | `run-report.md` | 过程总览（摘要 / 里程碑 / rubric 历程 / 决策），任何退出都生成 | 收尾步骤写 |
 | `logs/round-*.log` | 每轮 stdout，无人值守时的复盘依据 | 引擎每轮写 |
+| `logs/round-<NNNN>/` | Orchestrator 本轮临时产物目录（`judge-pre.md`、对抗产物 `review-*.md` 等），不进最终交付物 | Orchestrator 每轮写 |
 | `.galatea/` | 引擎内部状态（熔断计数等） | 引擎维护 |
 | `.done` | 收敛标记，引擎见到即退出 | 收敛时写 |
+
+**日志层级说明**：`logs/round-NNNN.log`（loop.sh 每轮 tee 写）是引擎层 stdout 日志；`logs/round-<NNNN>/`（Orchestrator 主动落盘）是 Orchestrator 层打分 / 对抗产物，两者并存设计意图各异。用 nohup 启动时，`engine.log` 会捕获所有 stdout（包含各 `round-NNNN.log` 的内容），两者存在内容重叠，属正常现象。

@@ -12,7 +12,6 @@
     <RAW_LABEL_FIELDS>  — 原始标签字段（防泄漏；如 label / user_id / raw_score）
     <TRAINING_DATA_FILE>— 训练 / 输入数据文件（如 train.tsv / corpus.jsonl）
     <TRAIN_SCRIPT>      — 训练 / 处理脚本（如 train.py / process.sh）
-    <WALL_TIME_LIMIT>   — 单 run 最大挂钟时间（如 15 min / 30 min）
     <WALL_TIME_LIMIT>   — 单 run 最大挂钟时间，超时由 Executor 自行 kill 并写 pending（如 15 min / 30 min）
     注：连续无进展熔断 / 总轮数上限 / 总时间上限 由引擎（loop.sh + circuit_breaker.sh）兜底，
         Orchestrator 无需自检，不在 iterate-prompt 里配置。
@@ -65,7 +64,7 @@
 
 ### 2. Judge 打分（独立 sub-agent，≠ 后续 Executor）
 
-派一个 Judge sub-agent，拿 `rubric.md` 对当前交付物逐项取证打分，跑 `<EVAL_SCRIPT>` 评估当前 `<CHECKPOINT_FILE>`，输出本轮起点 `<TASK_METRIC>`，落盘 `logs/round-<n>/judge-pre.md`。
+派一个 Judge sub-agent，拿 `rubric.md` 对当前交付物逐项取证打分，跑 `<EVAL_SCRIPT>` 评估当前 `<CHECKPOINT_FILE>`，输出本轮起点 `<TASK_METRIC>`，落盘 `logs/round-<NNNN>/judge-pre.md`。
 <!-- 填入:
   <EVAL_SCRIPT>       替换为实际评估脚本路径与调用示例，如 python eval.py --ckpt model.ckpt --test test_set.json
   <CHECKPOINT_FILE>   替换为当前最优产物文件路径
@@ -124,7 +123,11 @@
 - **本轮若有被 Judge 接受的交付物改动 → `git add` 改动的交付物 + `git commit`**（message 写清改了哪条 rubric 项及新 `<TASK_METRIC>`，如 `R1: 修复泄漏检查，<TASK_METRIC>=X`）。**注意**：只 commit 交付物；簿记已被 `.gitignore` 排除。这次 commit 即引擎判定「本轮有进展」的信号。
 - 主观提案 / 触边界事项写 `pending.md`。
 
-### 7. 终止判定
+### 7. 遇阻不停
+
+需要用户决策、撞到影响边界、或连续返工仍不过 → 写 `pending.md`（原因 + 已试方案 + 影响范围），**继续推进其他能自主推进的方向**，绝不挂起等人。
+
+### 8. 终止判定
 
 - 全部 blocker/high rubric 项达标，且对抗式验收通过，且 medium 的客观缺漏已修 → 写 `final-review.md`（对照 rubric 逐条结案 + 残留主观提案清单 + 「簿记文件是否清理」交用户决定的提示）+ 落 `.done`，返回收敛。
 - 否则正常结束本轮，引擎重启下一轮。

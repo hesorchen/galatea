@@ -34,7 +34,7 @@ Galatea compresses human involvement down to the **one point that genuinely need
 
 1. Invoke it and state your goal.
 2. **Phase 0**: the skill spins up a dedicated, **git-managed task directory** for the goal, then works with you to break the goal into a checkable rubric, confirms and freezes it, and generates the per-round `iterate-prompt.md`. (If the goal is to work on an existing repo, it operates inside that repo instead.)
-3. **Phase 1**: start the unattended loop with the engine (run it in a persistent environment / tmux so disconnects don't matter):
+3. **Phase 1**: start the unattended loop with the engine (run it in a persistent environment / tmux so disconnects don't matter). **Run from the galatea project root**:
 
    ```bash
    bash engine/loop.sh <goal-directory> [max-rounds]
