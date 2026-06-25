@@ -1,0 +1,19 @@
+# Galatea 任务目录 .gitignore
+#
+# git 只跟踪「交付物」(被打磨的文档/代码/报告) + 首个 commit 留档的
+# rubric.md / iterate-prompt.md + 收敛时的 final-review.md。
+# 下列滚动簿记与引擎内部态不进 git——否则每轮都产生 commit，会废掉
+# 「有新 commit == 真进展」这条熔断赖以判断的不变量。
+
+state.md
+log.md
+pending.md
+logs/
+.galatea/
+.done
+
+# 对抗评审的临时产物
+plan-a.md
+plan-b.md
+review-*.md
+critique.md
