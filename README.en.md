@@ -52,11 +52,22 @@ Galatea compresses human involvement down to the **one point that genuinely need
 
 ```
 galatea/
-├─ SKILL.md              # Core: Phase 0 co-design protocol + Phase 1 loop spec + behavior constraints
-├─ engine/loop.sh        # The outer loop engine (fresh-context restart + usage backoff + convergence exit)
-├─ templates/            # Starter templates for rubric / state / log / pending / iterate-prompt
-├─ README.md             # Chinese
-├─ README.en.md          # English
+├─ SKILL.md                  # Core: Phase 0 co-design protocol + Phase 1 loop spec + behavior constraints
+├─ engine/
+│  ├─ loop.sh                # The outer loop engine (fresh-context restart + usage backoff + convergence exit)
+│  ├─ circuit_breaker.sh     # Stagnation circuit breaker: halt after N consecutive rounds with no progress
+│  └─ notify.sh              # Key-event notifications (GALATEA_NOTIFY_CMD; includes email example)
+├─ templates/                # Starter templates for each output file
+│  ├─ rubric.template.md     # Checkable rubric (frozen in Phase 0)
+│  ├─ iterate-prompt.template.md   # Per-round instruction (executed repeatedly in Phase 1)
+│  ├─ finalize-prompt.template.md  # Post-convergence wrap-up instruction
+│  ├─ state.template.md      # Cross-round memory: current state snapshot
+│  ├─ log.template.md        # Cross-round memory: append-only round log
+│  ├─ pending.template.md    # Items needing your decision
+│  ├─ run-report.template.md # Run overview report
+│  └─ gitignore.template     # .gitignore for the task directory
+├─ README.md                 # Chinese
+├─ README.en.md              # English
 └─ LICENSE
 ```
 

@@ -113,8 +113,10 @@ git 约定（见 `templates/gitignore.template`）：
 ## 8. 立即切到引擎托管（不要在主会话驱动）
 冻结 + 首个 commit 之后，**立刻**在后台启动 `engine/loop.sh`：
 
+在 galatea 项目根目录下执行：
+
 ```bash
-nohup bash /home/chenxiaosen/.claude/skills/galatea/engine/loop.sh \
+nohup bash engine/loop.sh \
     <目标专属目录> <最大轮数> \
     > <目标专属目录>/logs/engine.log 2>&1 &
 ```
