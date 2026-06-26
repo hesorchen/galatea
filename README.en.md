@@ -34,6 +34,20 @@ Galatea compresses human involvement down to the **one point that genuinely need
 
 **Don't use it** for one-off small edits; for purely subjective tasks where no standard can be written (aesthetics / prose style — use "generate N variants and pick" instead); or for high-blast-radius, irreversible operations.
 
+## Install
+
+Copy the message below verbatim and send it to your agent (e.g. Claude Code) — it will clone and install the skill for you:
+
+> Install the Galatea skill for me: clone https://github.com/hesorchen/galatea.git into `~/.claude/skills/galatea`, then remind me to restart the session to use it.
+
+Or do it manually in one line:
+
+```bash
+git clone https://github.com/hesorchen/galatea.git ~/.claude/skills/galatea
+```
+
+After install, **restart your session** (the skill list is scanned at startup), then say "galatea" or describe a goal to trigger it.
+
 ## Usage
 
 1. Invoke it and state your goal.
