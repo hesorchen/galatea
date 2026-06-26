@@ -1,12 +1,14 @@
-# Galatea
+<h1 align="center">Galatea</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-8A63D2)](https://docs.claude.com/en/docs/claude-code)
-[![English](https://img.shields.io/badge/README-English-informational)](README.en.md)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://docs.claude.com/en/docs/claude-code"><img src="https://img.shields.io/badge/Claude%20Code-skill-8A63D2" alt="Claude Code"></a>
+  <a href="README.en.md"><img src="https://img.shields.io/badge/README-English-informational" alt="English"></a>
+</p>
 
-> 目标驱动的自主循环 Skill：给一个目标，先和你一起固化可量化的标准（rubric），锁定后由 Agent 无人值守地反复打磨、自评、剪枝、验证，逐轮逼近，直到达成目标。
+<p align="center"><strong>目标驱动的自主循环 Skill——制定一个可量化的标准，由 Agent 无人值守地反复迭代、自评、剪枝、探索、验证，逐轮逼近，直到达成目标。</strong></p>
 
-名字取自皮格马利翁神话里的少女像 Galatea——工匠依照心中的理想反复打磨象牙像，直到她足够完美。这正是本项目想做的事情：先和用户一起确定目标（rubric），再把产出打磨到极致。
+<p align="center"><em>名字取自皮格马利翁神话里的少女像 Galatea——工匠依照心中的理想反复打磨象牙像，直到她足够完美。</em></p>
 
 ## 它解决什么问题
 

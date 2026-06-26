@@ -1,12 +1,14 @@
-# Galatea
+<h1 align="center">Galatea</h1>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-8A63D2)](https://docs.claude.com/en/docs/claude-code)
-[![中文](https://img.shields.io/badge/README-中文-informational)](README.md)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://docs.claude.com/en/docs/claude-code"><img src="https://img.shields.io/badge/Claude%20Code-skill-8A63D2" alt="Claude Code"></a>
+  <a href="README.md"><img src="https://img.shields.io/badge/README-中文-informational" alt="中文"></a>
+</p>
 
-> A goal-driven autonomous loop skill: give it a goal, first co-design with you what "good/done" means as a checkable rubric, then — once locked — let the agent unattended-iterate: refine, self-grade, prune, verify, closing in round after round until the deliverable meets the bar, converges, or needs your decision.
+<p align="center"><strong>A goal-driven autonomous loop skill — define a checkable rubric, then let the agent unattended-iterate: refine, self-grade, prune, explore, verify, closing in round after round until the goal is met.</strong></p>
 
-The name comes from the Pygmalion myth: a sculptor refines an ivory statue, Galatea, against the ideal in his mind until she is good enough — and comes to life. That is exactly what this project does: **define the ideal first (the rubric), then chisel the deliverable against it until it "comes alive".**
+<p align="center"><em>The name comes from the Pygmalion myth: a sculptor refines an ivory statue, Galatea, against the ideal in his mind until she is good enough — and comes to life.</em></p>
 
 ## The problem it solves
 
