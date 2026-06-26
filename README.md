@@ -1,5 +1,9 @@
 # Galatea
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-skill-8A63D2)](https://docs.claude.com/en/docs/claude-code)
+[![English](https://img.shields.io/badge/README-English-informational)](README.en.md)
+
 > 目标驱动的自主循环 Skill：给一个目标，先和你一起把「什么叫做好」固化成可裁判的标准（rubric），锁定后让 Agent 无人值守地反复打磨、自评、剪枝、验证，逐轮逼近，直到达标、收敛，或需要你决策。
 
 名字取自皮格马利翁神话里的少女像 Galatea——工匠对着心中的理想反复打磨象牙像，直到她够好、活了过来。这正是本项目做的事：**先定义理想（rubric），再对着它把产出打磨到能「活过来」**。
