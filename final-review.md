@@ -9,14 +9,14 @@
 
 | # | 维度 | 严重度 | 最终判定 | 关键证据 |
 |---|------|--------|---------|---------|
-| R1 | 模板通用性 | **blocker** | ✅ 达标 | `grep -riE 'AUC\|best\.pt\|GCF\|...'` templates/ → 0 命中；8 个模板人工通读确认均为通用占位符 |
+| R1 | 模板通用性 | **blocker** | ✅ 达标 | `grep -riE '<上一任务特有术语>'` templates/ → 0 命中；8 个模板人工通读确认均为通用占位符 |
 | R2 | 启动命令可跑通 | high | ✅ 达标 | SKILL.md/README.md/README.en.md 启动命令均用 `[最大轮数]`（可选，统一）；路径 `engine/loop.sh` 真实存在；两版 README 均有 CWD 说明 |
 | R3 | 跨文件一致性 | high | ✅ 达标 | 四文件产物清单/三旋钮/步骤数/目录结构全部对齐：① SKILL.md 步骤 8 = 模板步骤 8（含「遇阻不停」）；② 日志编号 `round-<NNNN>` 四处统一；③ 产物表含 `logs/round-<NNNN>/` 子目录条目；④ 三旋钮命名中英文完全一致 |
 | R4 | 文档无悬空引用 | high | ✅ 达标 | 11 个引用文件全部存在；`NEEDS CLARIFICATION` / `TODO` 无真实残留；模板占位符均有 `<!-- 填入: -->` 配套说明 |
 | R5 | 脚本健壮性 | high | ✅ 达标 | `bash -n` 三脚本全 PASS；smoke 验证（无参数/缺文件/初始化链）正常；8 项文档承诺行为全有代码落地 |
-| R6 | README↔实现对齐 | medium | ✅ 达标 | 11/11 条设计要点在 SKILL/engine 有落地（Judge-pre round-0002 确认） |
+| R6 | README↔实现对齐 | medium | ✅ 达标 | 11/11 条设计要点在 SKILL/engine 有落地（round-0002 复评确认） |
 | R7 | 英文 README 同步 | medium | ✅ 达标 | README.en.md 结构与 README.md 对应，CWD 说明同步，三旋钮英文版一致 |
-| R8 | 整体可读自包含 | medium | ✅ 达标 | 新用户视角 Judge 通读无 blocker 级理解障碍（Judge-pre round-0002 确认） |
+| R8 | 整体可读自包含 | medium | ✅ 达标 | 新用户视角 Judge 通读无 blocker 级理解障碍（round-0002 复评确认） |
 
 ---
 

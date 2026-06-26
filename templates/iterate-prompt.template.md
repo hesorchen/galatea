@@ -56,22 +56,22 @@
 ### 1. 读盘
 
 - `rubric.md`（冻结，只读）—— 裁判标准、阈值、严重度、三旋钮、scope。
-- `state.md` —— 各项达标状态、待办候选、已完成 / 已否决。
+- `state.md` —— 各项达标状态、待办候选、已完成 / 已否决。其「达标进度表」即**本轮起点基线**（上一轮改动后全量复评写下）。
 - `log.md` 最近 5 轮。
 - `pending.md` —— 是否有需绕开 / 已提案的事项，避免重复提。
 - 校验 `<FROZEN_TEST_SET>` 的 sha256 与首落盘值一致（若不一致 → 立即停，写 pending）。
 <!-- 填入: <FROZEN_TEST_SET> 替换为实际冻结测试集文件名 -->
 
-### 2. Judge 打分（独立 sub-agent，≠ 后续 Executor）
+### 2. 取基线（不重新打分；仅第 1 轮冷启动）
 
-派一个 Judge sub-agent，拿 `rubric.md` 对当前交付物逐项取证打分，跑 `<EVAL_SCRIPT>` 评估当前 `<CHECKPOINT_FILE>`，输出本轮起点 `<TASK_METRIC>`，落盘 `logs/round-<NNNN>/judge-pre.md`。
+本轮起点分**直接取自步骤 1 读到的 `state.md`「达标进度表」**——那是上一轮「改动后全量复评」（步骤 5）写下、与当前产物一致的分数与 `<TASK_METRIC>`，**不再重评**（省一次裁判 spawn）。
+
+**唯第 1 轮**无前序分：派一个独立 Judge sub-agent，拿 `rubric.md` 对当前交付物逐项取证打分，跑 `<EVAL_SCRIPT>` 评估当前 `<CHECKPOINT_FILE>`，输出起点 `<TASK_METRIC>`，落盘 `logs/round-0001/judge-pre.md`，每项输出「达标 / 未达标 / 待复查 + 证据」。（同一套取证在步骤 5 的全量复评里复用。）
 <!-- 填入:
   <EVAL_SCRIPT>       替换为实际评估脚本路径与调用示例，如 python eval.py --ckpt model.ckpt --test test_set.json
   <CHECKPOINT_FILE>   替换为当前最优产物文件路径
   <TASK_METRIC>       替换为核心指标名称，如 accuracy / BLEU / F1
 -->
-
-每项输出「达标 / 未达标 / 待复查 + 证据」。
 
 ### 3. 规划（默认 orchestrator 自规划；连续 3 轮无进展时升级竞争式规划：2 Planner 互挑刺）
 
@@ -106,7 +106,9 @@
 <!-- 填入: <WALL_TIME_LIMIT> 替换为实际时限，如 15 min -->
 - 纯机械 trivial 小修（typo / 单个路径字符串）orchestrator 可内联直接做，不必 spawn。
 
-### 5. 稳定性验证（派 Judge sub-agent 复评，≠ Executor）
+### 5. 改动后全量复评（派 Judge sub-agent，≠ Executor）
+
+派裁判 sub-agent 对改动后的产物**按 `rubric.md` 全量重打分**（不只验本轮动过的项），落盘 `logs/round-<NNNN>/judge-post.md` 并写回 `state.md`——这份全量分**既是本轮结论，也是下一轮的起点基线**（故步骤 2 无需再评，回归在改动当轮即暴露）。复评至少覆盖：
 
 - 复跑 `<EVAL_SCRIPT>`，确认 `<TASK_METRIC>` 真实提升（不是改了别处骗过检查）。
 <!-- 填入: <EVAL_SCRIPT>、<TASK_METRIC> 同上 -->
@@ -119,7 +121,7 @@
 
 - 更新 `state.md`：达标进度表（每项状态 + 证据）、待办候选、done[] / rejected[]（带原因）、轮次 +1、`<TASK_METRIC>` 历史最优。
 <!-- 填入: <TASK_METRIC> 同上 -->
-- 追加 `log.md`：本轮起止 `<TASK_METRIC>`（Δ）、Judge 结论、假设 / 行动、稳定性验证（有对抗则记交锋）、commit hash。
+- 追加 `log.md`：**轮次标题带真实时间戳**——先 `date '+%Y-%m-%d %H:%M'` 取当前时间填进 `## R<n> — <时间戳>`（不要只写日期）；正文记本轮起止 `<TASK_METRIC>`（Δ）、Judge 结论、假设 / 行动、稳定性验证（有对抗则记交锋）、commit hash。
 - **本轮若有被 Judge 接受的交付物改动 → `git add` 改动的交付物 + `git commit`**（message 写清改了哪条 rubric 项及新 `<TASK_METRIC>`，如 `R1: 修复泄漏检查，<TASK_METRIC>=X`）。**注意**：只 commit 交付物；簿记已被 `.gitignore` 排除。这次 commit 即引擎判定「本轮有进展」的信号。
 - 主观提案 / 触边界事项写 `pending.md`。
 

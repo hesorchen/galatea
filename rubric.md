@@ -10,8 +10,8 @@
 ## 裁判标准
 | # | 维度 | 可勾选标准 | 裁判怎么取证 | 阈值 | 严重度 |
 |---|------|-----------|-------------|------|--------|
-| R1 | 模板通用性 | 所有 `templates/*.template.md` 为领域无关占位符，无任何具体任务残留 | `grep -riE 'AUC\|best\.pt\|GCF\|test_items_frozen\|score1\|cuid\|population_segments\|521k\|train_v5\|eval_on_frozen'` templates/ + 人工通读每个模板 | grep 命中 0；每个模板只剩通用占位符 + 中性示例标注 | **blocker** |
-| R2 | 启动命令可跑通 | README/SKILL 给的启动命令路径与项目真实位置自洽，不写死不存在路径 | 核对命令里每个路径是否存在 / 相对自洽（已知 SKILL.md 启动段写死 `~/.claude/skills/galatea/engine/loop.sh`，项目实际在 `~/claude_space/projects/galatea/`） | 命令能照抄执行，路径真实或有明确安装说明 | high |
+| R1 | 模板通用性 | 所有 `templates/*.template.md` 为领域无关占位符，无任何具体任务残留 | `grep -riE '<上一任务的特有术语：模型文件名 / 指标名 / 数据规模 / 版本号 / 字段名…>'` templates/ + 人工通读每个模板 | grep 命中 0；每个模板只剩通用占位符 + 中性示例标注 | **blocker** |
+| R2 | 启动命令可跑通 | README/SKILL 给的启动命令路径与项目真实位置自洽，不写死不存在路径 | 核对命令里每个路径是否存在 / 相对自洽（已知 SKILL.md 启动段写死 `~/.claude/skills/galatea/engine/loop.sh`，项目实际在 `<GOAL_DIR>`） | 命令能照抄执行，路径真实或有明确安装说明 | high |
 | R3 | 跨文件一致性 | SKILL / README / README.en / templates 间：产物文件清单、三旋钮命名、单轮流程步骤、目录结构无矛盾 | 四处交叉比对清单与命名 | 0 处矛盾 | high |
 | R4 | 文档无悬空引用 | 文档引用的所有文件/路径真实存在，无残留 `[NEEDS CLARIFICATION]` / TODO / 未填占位符 | grep 引用路径逐一核对存在性；grep `NEEDS CLARIFICATION\|TODO\|<.*>` | broken 引用 0、残留标记 0 | high |
 | R5 | 脚本健壮性 | `engine/*.sh` 过 `bash -n`；关键边界（GOAL_DIR 非 git 仓 / 缺 finalize-prompt / 空或缺 pending）不致命崩且行为符合文档 | `bash -n` 三脚本 + 读码核对每条文档承诺有对应实现 + 构造最小 smoke（fake goal dir + 假 iterate-prompt 回显 echo）验证 loop.sh 不立即崩 | `bash -n` 全过 + smoke 不崩 + 文档承诺行为代码里都有 | high |
@@ -26,14 +26,14 @@
   - 自改（客观）：模板去污、路径修正、文件清单/命名不一致、bash 语法错、broken 引用、英文同步缺漏。
   - 仅提案（主观，写 `pending.md`）：README 措辞优化、是否新增章节、是否新增功能、设计取舍。
 - **影响边界（本任务额外，叠加 SKILL.md 全局安全红线）**：
-  - 额外禁止的目录：只在 `~/claude_space/projects/galatea/` 内动手，禁碰外层 claude_space 任何文件。
-  - 额外禁止的操作：禁删文件（可改写；确需删除→写 pending）；禁碰 `LICENSE`；禁 `git push`、禁碰 claude_space 外层 git（不在外层 add/commit）；禁系统级（不装 shellcheck 等软件、不 kill 进程）；禁外发（邮件/对外 API 写/付费）。
+  - 额外禁止的目录：只在 `<GOAL_DIR>` 内动手，禁碰其外层 / 父级目录任何文件。
+  - 额外禁止的操作：禁删文件（可改写；确需删除→写 pending）；禁碰 `LICENSE`；禁 `git push`、禁碰 `<GOAL_DIR>` 外层 / 父级 git（不在外层 add/commit）；禁系统级（不装 shellcheck 等软件、不 kill 进程）；禁外发（邮件/对外 API 写/付费）。
   - 明确授权的外发/越界操作：无（联网**读**允许，如 web 查 shell 最佳实践）。
 - **收敛后行为**：① 停。全 blocker/high 达标 + 稳定性验证通过 → 写 `final-review.md` + `.done`，停机等用户复核。
 
 ## Scope 收口
 - **范围内**：`SKILL.md` / `engine/*.sh` / `templates/*` / `README.md` / `README.en.md` 的内容质量与一致性。
-- **范围外**：不改 `LICENSE`；不真跑一个完整的无人值守业务任务（dogfood，本目标只到「bash -n + 最小 smoke 可跑通」级别）；不新增重大功能（只在现有设计内修缺陷 + 对齐文档↔实现）；不动 claude_space 外层任何文件。
+- **范围外**：不改 `LICENSE`；不真跑一个完整的无人值守业务任务（dogfood，本目标只到「bash -n + 最小 smoke 可跑通」级别）；不新增重大功能（只在现有设计内修缺陷 + 对齐文档↔实现）；不动 `<GOAL_DIR>` 外层任何文件。
 
 ## 达标定义
 - 所有 blocker(R1) + high(R2/R3/R4/R5) 项通过，且稳定性验证（对抗式验收）通过 → 达标。

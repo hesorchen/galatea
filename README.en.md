@@ -22,7 +22,7 @@ Galatea compresses human involvement down to the **one point that genuinely need
 - **Rubric quality self-check before freezing**: a bad rubric is a bad judge and wastes every round, so the rubric itself is checked against a quality checklist before it's locked.
 - **Tiered adversarial review**: multi-subagent opposition kicks in only at high-stakes moments (passing a criterion / declaring convergence / getting stuck) — a prosecutor red-team vs. defender for acceptance to catch fake progress, two competing planners cross-critiquing to avoid tunnel vision — while ordinary small-step rounds stay lightweight.
 - **Resource maximization within a hard safety line**: it's encouraged to fully leverage available compute (parallel sub-agents), installed skills, MCP servers, and tools instead of reinventing — while an **overriding environment safety line** forbids destructive / irreversible / out-of-scope / outbound actions under unattended, permission-skipped runs; when in doubt it hands the decision back to you.
-- **Run report**: on any exit (converged / circuit-open / max-rounds / failed), a `run-report.md` is auto-generated — a markdown process overview (summary + milestone timeline + rubric-progress history + key decisions) so that after an unattended run you can see the whole journey at a glance.
+- **Run report**: on any exit (converged / circuit-open / max-rounds / failed), a `run-report.md` is auto-generated — a flow-centric markdown overview (task flow diagram + per-round state changes + rubric state transitions + key decisions) so that after an unattended run a single flow diagram shows the whole journey at a glance.
 
 ## When to use / not use
 
@@ -73,7 +73,7 @@ galatea/
 
 ## Status
 
-Draft. Issues / PRs welcome.
+v1.0.0. Issues / PRs welcome.
 
 ## License
 

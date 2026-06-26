@@ -150,11 +150,11 @@ nohup bash engine/loop.sh \
 
 单轮内是**三角色分工**：**Orchestrator** 读盘 / 规划 / 仲裁 / 写盘（不亲自动手）、**Executor sub-agent** 执行、**Judge sub-agent** 按 rubric 打分（Executor ≠ Judge）。单轮步骤：
 
-1. **读盘**：`rubric.md`（冻结）+ `state.md` + 近期 `log.md`，搞清已完成 / 待办 / 已否决。
-2. **裁判打分**：派一个**独立**裁判 sub-agent（不是做改动的那个），按 rubric 给当前产出打分，输出未达标项（带证据、严重度）。**这份打分必须落盘**（步骤 6 写入 `state.md` 达标进度表 + `log.md`）——它既是审计痕迹，也是下一轮 fresh 进程读盘续接的依据。
+1. **读盘**：`rubric.md`（冻结）+ `state.md` + 近期 `log.md`，搞清已完成 / 待办 / 已否决。`state.md` 的「Rubric 达标进度」表即**本轮起点基线**（上一轮改动后全量复评写下，与当前产物一致）。
+2. **取基线**：本轮起点分**直接取自步骤 1 读到的 `state.md` 达标进度表**——那是上一轮「改动后全量复评」（步骤 5）写下、与当前产物一致的分数，**不再重新打分**（省一次裁判 spawn）。**唯第 1 轮**无前序分，派一个**独立**裁判 sub-agent（不是做改动的那个）做冷启动全量 baseline，落 `logs/round-0001/judge-pre.md`。
 3. **选行动（假设绑定）**：默认 orchestrator 自己规划，挑信息量高、成本低、最能推动达标的 1-3 个动作；每个动作绑假设 + 预期 + 「证伪后怎么剪枝」；动手前查 `state` 的「已完成 / 已否决」去重。**优先调动现成资源**：能用已装 skill / MCP / 工具就不手搓；相互独立的动作派**并行 Executor** 同时跑，吃满算力。**遇高风险动作 / 连续无进展（接近熔断）/ 把握不大时，升级为竞争式规划**：派 2 个 Planner sub-agent 独立出方案 → 互读互挑刺 → orchestrator 仲裁取舍或融合（见「对抗机制」）。
 4. **委派执行**：把规划好的动作交给一个 **Executor sub-agent**（≠ 裁判）去做，它只拿到「做什么 + 自主度 + 影响边界」，在范围内动手并自测，回报改动摘要；越界的动作不做，写进 `pending.md`。orchestrator **自己不下场改文件**——保持上下文干净、立场中立。**例外**：纯机械的客观小修（改路径 / typo）可内联直接做，不必为此 spawn subagent。
-5. **稳定性验证**：默认单裁判复评——是真达标还是空转？查泄露 / 过拟合 / 把测试改绿但功能坏。**当某 blocker/high 项将判达标、或将宣告整体收敛(.done) 这类高风险裁决时，升级为对抗式验收**：一个 Prosecutor / 红队 sub-agent 竭力证明「没达标」（找反例、泄露、过拟合、骗过检查但实际坏），一个 Defender 论证「达标」，orchestrator 拿冻结 rubric 仲裁，交锋记进 `log.md`（见「对抗机制」）。**运动员与裁判必须分离**。
+5. **改动后全量复评**（独立裁判，≠ Executor）：派裁判 sub-agent 对改动后的产物**按 rubric 全量重打分**（不只验本轮动过的项，连带扫回归——改 A 有没有弄坏 B——与泄露 / 过拟合 / 把测试改绿但功能坏）。落盘 `logs/round-<NNNN>/judge-post.md` 并写回 `state.md`——这份全量分**既是本轮结论，也是下一轮的起点基线**（故步骤 2 无需再评，回归也在改动当轮即暴露、不滞后）。**当某 blocker/high 项将判达标、或将宣告整体收敛(.done) 这类高风险裁决时，升级为对抗式验收**：一个 Prosecutor / 红队 sub-agent 竭力证明「没达标」（找反例、泄露、过拟合、骗过检查但实际坏），一个 Defender 论证「达标」，orchestrator 拿冻结 rubric 仲裁，交锋记进 `log.md`（见「对抗机制」）。**运动员与裁判必须分离**。
 6. **写盘**：把本轮**裁判打分落盘**——更新 `state.md` 的「Rubric 达标进度」表（每项状态 + 证据）、向 `log.md` 追加本轮「裁判结论 + 假设/行动 + 稳定性验证」；记 done / rejected、轮次+1；本轮若有**被裁判接受的交付物改动**，`git commit`（簿记已被 `.gitignore` 排除，只提交交付物）。**这次 commit 即引擎判定「本轮有进展」的信号**——只折腾却没让任何交付物改动通过裁判 = 无 commit = 无进展，连续多轮会触发停滞熔断。
 7. **遇阻不停**：需要用户决策、或撞到边界、或连续返工仍不过 → 写 `pending.md`（原因 + 已试方案 + 影响范围），**继续下一个能自主推进的方向**，绝不挂起等人。
 8. **终止判定**：按「收敛后行为」旋钮。全部 blocker/high 达标且稳定性通过 → 触发该旋钮（停 / 精修 / 转目标）。预算/用量耗尽是兜底终止，不是成功标准。
@@ -165,7 +165,7 @@ nohup bash engine/loop.sh \
 - **停滞熔断**：连续 N 轮无进展（无新 commit）自动停机，防空转烧光预算。
 - **关键事件通知**：收敛 / 需决策（`pending.md` 增长）/ 熔断 / 连续失败时，通过用户配置的通道推送。
 - **用量退避 + 轮数上限 + 每轮日志**：撞用量上限指数退避；可设最大轮数；每轮输出落 `logs/`，便于事后复盘。
-- **运行总览**：**任何方式退出**（收敛 / 熔断 / 轮数耗尽 / 连续失败）后，引擎跑一次 `finalize-prompt.md` 生成过程总览 `run-report.md`（markdown，聚合里程碑而非复读 `log.md`）并 commit——无人值守跑完，一张表看清这一程怎么走过来的。
+- **运行总览**：**任何方式退出**（收敛 / 熔断 / 轮数耗尽 / 连续失败）后，引擎跑一次 `finalize-prompt.md` 生成**流程视角**的过程总览 `run-report.md`（markdown：流转图 + 逐轮状态变化 + rubric 状态流转，聚合而非复读 `log.md`）并 commit——无人值守跑完，一张流转图看清这一程怎么走过来的。
 
 ---
 
@@ -202,7 +202,7 @@ nohup bash engine/loop.sh \
 
 约定：
 - 对抗产物（`plan-a.md` / `plan-b.md` / `critique.md` / `review-*.md`）是**临时的**，落在本轮 scratch 目录（如 `logs/round-<NNNN>/`），不进最终交付物。
-- **不依赖** harness 专属的「带上下文续跑同一 agent」能力（如本环境的 SendMessage）——一律用「fresh spawn + 文件注入」，保证在通用 Claude Code / Codex 上都能跑。
+- **不依赖** harness 专属的「带上下文续跑同一 agent」能力（部分 harness 提供的「复用同一 agent 会话续跑」机制）——一律用「fresh spawn + 文件注入」，保证在通用 Claude Code / Codex 上都能跑。
 
 # 环境安全红线（不可逾越）
 
@@ -240,9 +240,9 @@ galatea 默认在 `--dangerously-skip-permissions` 下无人值守运行——**
 | `final-review.md` | 收敛时对照 rubric 的逐条结案报告 | 收敛时写 |
 | `iterate-prompt.md` | 本目标的单轮指令，引擎每轮喂给 `claude -p` | Phase 0 生成 |
 | `finalize-prompt.md` | 收尾指令，引擎退出时跑一次以生成总览 | Phase 0 生成 |
-| `run-report.md` | 过程总览（摘要 / 里程碑 / rubric 历程 / 决策），任何退出都生成 | 收尾步骤写 |
+| `run-report.md` | 流程视角过程总览（摘要 / 任务流转图 / 逐轮状态变化 / rubric 状态流转 / 机制触发点），任何退出都生成 | 收尾步骤写 |
 | `logs/round-*.log` | 每轮 stdout，无人值守时的复盘依据 | 引擎每轮写 |
-| `logs/round-<NNNN>/` | Orchestrator 本轮临时产物目录（`judge-pre.md`、对抗产物 `review-*.md` 等），不进最终交付物 | Orchestrator 每轮写 |
+| `logs/round-<NNNN>/` | Orchestrator 本轮临时产物目录（每轮全量复评 `judge-post.md`、首轮冷启动 `judge-pre.md`、对抗产物 `review-*.md` 等），不进最终交付物 | Orchestrator 每轮写 |
 | `.galatea/` | 引擎内部状态（熔断计数等） | 引擎维护 |
 | `.done` | 收敛标记，引擎见到即退出 | 收敛时写 |
 
