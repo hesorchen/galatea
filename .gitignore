@@ -1,13 +1,21 @@
-# Galatea 任务目录 .gitignore
+# Galatea 仓库 .gitignore
 #
-# git 只跟踪「交付物」(SKILL.md / engine / templates / README*) + 留档的
-# rubric.md / iterate-prompt.md / finalize-prompt.md + 收敛时的 final-review.md / run-report.md。
-# 下列滚动簿记与引擎内部态不进 git——否则每轮都产生 commit，会废掉
-# 「有新 commit == 真进展」这条熔断赖以判断的不变量。
+# git 只跟踪交付物：SKILL.md / engine/ / templates/ / README* / LICENSE / .gitignore。
+# 所有 Galatea 运行产物（无论根目录还是子目录）一律不进 git。
 
+# Phase 0–1 运行时产物
+rubric.md
+iterate-prompt.md
+finalize-prompt.md
 state.md
 log.md
 pending.md
+
+# 收敛产物
+final-review.md
+run-report.md
+
+# 引擎内部态
 logs/
 .galatea/
 .done
