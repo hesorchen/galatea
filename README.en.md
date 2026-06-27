@@ -6,7 +6,7 @@
   <a href="README.md"><img src="https://img.shields.io/badge/README-中文-informational" alt="中文"></a>
 </p>
 
-<p align="center"><strong>A goal-driven autonomous loop skill — define a checkable rubric, then let the agent unattended-iterate: refine, self-grade, prune, explore, verify, closing in round after round until the goal is met.</strong></p>
+<p align="center"><strong>A goal-driven autonomous iteration skill — define a checkable rubric, then let the agent unattended-iterate: refine, self-grade, prune, explore, verify, closing in round after round until the goal is met.</strong></p>
 
 <p align="center"><em>The name comes from the Pygmalion myth: a sculptor refines an ivory statue, Galatea, against the ideal in his mind until she is good enough — and comes to life.</em></p>
 
