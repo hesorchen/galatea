@@ -1,7 +1,6 @@
 ---
 name: galatea
 description: 目标驱动的自主迭代。用户给一个目标，先和用户一起把「什么叫做完/做好」固化成可裁判的 rubric，锁定后进入无人值守循环：每轮由独立裁判按 rubric 打分，再做假设绑定的改进、剪枝、稳定性验证，逐轮逼近直到达标、收敛或需要决策（决策不打断用户，写入 pending 继续）。适用任何「有目标、能定义合格、可迭代」的任务：优化一批文档、把脚本测试跑绿、产出一份达标的调研报告、排查 bug、迭代一份方案。触发词：galatea、目标驱动循环、自动冲目标、设定目标自动推进、定个标准自动迭代、goal-driven loop、autonomous goal loop、rubric-driven loop、让它一直跑直到达标。仅手动调用。
-license: MIT
 ---
 
 # Galatea — 目标驱动的自主迭代
@@ -104,9 +103,23 @@ git 约定（见 `templates/gitignore.template`）：
 ## 8. 立即切到引擎托管（不要在主会话驱动）
 冻结 + 首个 commit 之后，**立刻**在后台启动 `engine/loop.sh`：
 
-在 galatea 项目根目录下执行：
+在 galatea 项目根目录下执行。引擎会自动检测可用后端：只找到 `claude` 就用 Claude Code，只找到 `codex` 就用 Codex；若两者都存在，必须用 `GALATEA_AGENT_BACKEND` 显式指定默认后端：
 
 ```bash
+nohup bash engine/loop.sh \
+    <目标专属目录> [最大轮数] \
+    > <目标专属目录>/logs/engine.log 2>&1 &
+```
+
+```bash
+GALATEA_AGENT_BACKEND=codex \
+nohup bash engine/loop.sh \
+    <目标专属目录> [最大轮数] \
+    > <目标专属目录>/logs/engine.log 2>&1 &
+```
+
+```bash
+GALATEA_AGENT_BACKEND=claude \
 nohup bash engine/loop.sh \
     <目标专属目录> [最大轮数] \
     > <目标专属目录>/logs/engine.log 2>&1 &
@@ -118,7 +131,7 @@ nohup bash engine/loop.sh \
 
 # Phase 1 — 自主迭代
 
-无人值守，每一轮都是一次**全新上下文**（由外层引擎重启，见 `engine/loop.sh`），靠落盘文件接续记忆。
+无人值守，每一轮都是一次**全新上下文**（由外层引擎重启，见 `engine/loop.sh`），靠落盘文件接续记忆。引擎支持 `claude` 与 `codex exec` 后端；未设置 `GALATEA_AGENT_BACKEND` 时会自动检测可用命令，但如果两者都存在会退出并要求显式指定。后端只负责启动 fresh agent，不改变 Galatea 的 rubric / state / judge-executor 分离契约。
 
 ## 🚫 硬铁律：Phase 1 绝对不打断用户
 
@@ -197,7 +210,7 @@ nohup bash engine/loop.sh \
 
 # 环境安全红线（不可逾越）
 
-galatea 默认在 `--dangerously-skip-permissions` 下无人值守运行——**没人在旁边拦截，红线只能靠 agent 自己守**。下列操作**任何时候都禁止**，且**凌驾于「充分调动资源」「推进目标」之上**：再想推进，也不许越线。
+galatea 默认在跳过交互式确认的无人值守模式下运行：Claude 后端默认 `--dangerously-skip-permissions`，Codex 后端默认 `codex exec --dangerously-bypass-approvals-and-sandbox`。**没人在旁边拦截，红线只能靠 agent 自己守**。下列操作**任何时候都禁止**，且**凌驾于「充分调动资源」「推进目标」之上**：再想推进，也不许越线。
 
 - **破坏性 / 不可逆**：`rm -rf`、删除任务目录外的任何文件 / 目录、清空或覆盖非本任务产出、`git push --force` / `git reset --hard` / 改写历史 / 删分支。
 - **系统级**：改系统配置、全局装卸软件、kill 其他进程 / 服务、改文件权限属主、动网络 / 防火墙 / 计划任务。
@@ -229,7 +242,7 @@ galatea 默认在 `--dangerously-skip-permissions` 下无人值守运行——**
 | `log.md` | append-only 流水账，永不删，可回溯 | 每轮追加 |
 | `pending.md` | 需用户决策 / 被边界拦下的事项队列 | 按需追加 |
 | `final-review.md` | 收敛时对照 rubric 的逐条结案报告 | 收敛时写 |
-| `iterate-prompt.md` | 本目标的单轮指令，引擎每轮喂给 `claude -p` | Phase 0 生成 |
+| `iterate-prompt.md` | 本目标的单轮指令，引擎每轮喂给配置的 agent 后端（`claude -p` 或 `codex exec`） | Phase 0 生成 |
 | `finalize-prompt.md` | 收尾指令，引擎退出时跑一次以生成总览 | Phase 0 生成 |
 | `run-report.md` | 流程视角过程总览（摘要 / 任务流转图 / 逐轮状态变化 / rubric 状态流转 / 机制触发点），任何退出都生成 | 收尾步骤写 |
 | `logs/round-*.log` | 每轮 stdout，无人值守时的复盘依据 | 引擎每轮写 |

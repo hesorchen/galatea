@@ -3,6 +3,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://docs.claude.com/en/docs/claude-code"><img src="https://img.shields.io/badge/Claude%20Code-skill-8A63D2" alt="Claude Code"></a>
+  <a href="https://developers.openai.com/codex"><img src="https://img.shields.io/badge/Codex-exec-111827" alt="Codex exec"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/README-中文-informational" alt="中文"></a>
 </p>
 
@@ -38,14 +39,26 @@ Galatea compresses human involvement down to the **one point that genuinely need
 
 ## Install
 
-Copy the message below verbatim and send it to your agent (e.g. Claude Code) — it will clone and install the skill for you:
+Copy the matching message below and send it to your agent — it will clone and install the skill for you:
+
+Claude Code:
 
 > Install the Galatea skill for me: clone https://github.com/hesorchen/galatea.git into `~/.claude/skills/galatea`, then remind me to restart the session to use it.
 
-Or do it manually in one line:
+Codex:
+
+> Install the Galatea skill for me: clone https://github.com/hesorchen/galatea.git into `~/.codex/skills/galatea`, then remind me to restart the session to use it.
+
+Manual install for Claude Code:
 
 ```bash
 git clone https://github.com/hesorchen/galatea.git ~/.claude/skills/galatea
+```
+
+Manual install for Codex:
+
+```bash
+git clone https://github.com/hesorchen/galatea.git ~/.codex/skills/galatea
 ```
 
 After install, **restart your session** (the skill list is scanned at startup), then say "galatea" or describe a goal to trigger it.
@@ -54,18 +67,32 @@ After install, **restart your session** (the skill list is scanned at startup), 
 
 1. Invoke it and state your goal.
 2. **Phase 0**: the skill spins up a dedicated, **git-managed task directory** for the goal, then works with you to break the goal into a checkable rubric, confirms and freezes it, and generates the per-round `iterate-prompt.md`. (If the goal is to work on an existing repo, it operates inside that repo instead.)
-3. **Phase 1**: start the unattended loop with the engine (run it in a persistent environment / tmux so disconnects don't matter). **Run from the galatea project root**:
+3. **Phase 1**: start the unattended loop with the engine (run it in a persistent environment / tmux so disconnects don't matter). **Run from the galatea project root**. The engine auto-detects the backend: if only `claude` is found, it uses Claude Code; if only `codex` is found, it uses Codex; if both are available, it exits and requires you to explicitly set `GALATEA_AGENT_BACKEND`:
 
    ```bash
    bash engine/loop.sh <goal-directory> [max-rounds]
    ```
+
+   To explicitly run each round through Codex:
+
+   ```bash
+   GALATEA_AGENT_BACKEND=codex bash engine/loop.sh <goal-directory> [max-rounds]
+   ```
+
+   To explicitly run each round through Claude Code:
+
+   ```bash
+   GALATEA_AGENT_BACKEND=claude bash engine/loop.sh <goal-directory> [max-rounds]
+   ```
+
+   To make one backend your personal default, add `export GALATEA_AGENT_BACKEND=codex` or `export GALATEA_AGENT_BACKEND=claude` to your shell profile.
 
    The engine repeatedly runs one round with a fresh context; it backs off exponentially on usage limits, halts itself if there's no progress for several rounds, and exits automatically once converged. Each round's output lands in `<goal-directory>/logs/` for post-mortems.
    For notifications, point the `GALATEA_NOTIFY_CMD` env var at your own notify command (see the email example in `engine/notify.sh`).
 
 ## Safety
 
-- The unattended loop relies on skipping interactive confirmation (e.g. `--dangerously-skip-permissions`), so **set the impact boundary in Phase 0 first** (no push / no delete / off-limit directories) and run it in an isolated environment.
+- The unattended loop relies on skipping interactive confirmation: Claude defaults to `--dangerously-skip-permissions`, and Codex defaults to `codex exec --dangerously-bypass-approvals-and-sandbox`. **Set the impact boundary in Phase 0 first** (no push / no delete / off-limit directories) and run it in an isolated environment.
 - By default each round's passing changes are committed via `git commit` as a checkpoint, so a bad round can be reverted.
 
 ## Layout
