@@ -1,7 +1,7 @@
 <!--
   单轮执行指令骨架（iterate-prompt）
   Phase 0 与 rubric 一起生成，存为 <GOAL_DIR>/iterate-prompt.md。
-  engine/loop.sh 每轮把本文件喂给 claude -p，作为 Orchestrator 角色的指令。
+  engine/loop.sh 每轮把本文件喂给配置的 agent 后端，作为 Orchestrator 角色的指令。
   填写说明：
     <GOAL_DIR>          — 任务根目录（绝对路径，如 /home/user/myproject）
     <DELIVERABLES>      — 被打磨的交付物列表（如 src/*.py / docs/*.md / model/）
@@ -20,7 +20,7 @@
 # 单轮执行指令（iterate-prompt）
 
 <!-- 填入: 替换为实际任务名称 -->
-> 每轮由引擎 `loop.sh` 喂给 `claude -p`，作为 Orchestrator 角色的指令。
+> 每轮由引擎 `loop.sh` 喂给配置的 agent 后端（`claude -p` 或 `codex exec`），作为 Orchestrator 角色的指令。
 > 每轮是 fresh context，靠读盘续接记忆。
 > 任务目录（GOAL_DIR）：`<GOAL_DIR>`
 > 被打磨的交付物：`<DELIVERABLES>`
