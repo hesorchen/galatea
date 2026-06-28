@@ -23,7 +23,7 @@ Galatea compresses human involvement down to the **one point that genuinely need
 - **Judge separated from executor**: each round an independent judge agent grades against the rubric; the agent making changes never grades its own work — no self-dealing.
 - **Fresh context per round + on-disk memory**: the engine restarts the process each round (fresh context, resistant to context rot); cross-round memory lives entirely in `state.md` / `log.md` on disk.
 - **Never blocks**: anything needing a decision goes into `pending.md` and the loop moves on — it never hangs waiting for you.
-- **Three knobs**: autonomy (propose-only / auto-fix objective / fully autonomous), impact boundary (directories and operations that are off-limits), post-convergence behavior (stop / tighten and re-sweep / move to next goal).
+- **Four knobs**: autonomy (propose-only / auto-fix objective / fully autonomous), impact boundary (directories and operations that are off-limits), runtime configuration (user-explicit backend / model / flags; no inference), post-convergence behavior (stop / tighten and re-sweep / move to next goal).
 - **Stagnation circuit breaker**: if no progress (no new commit) for N consecutive rounds, the loop halts itself — no burning the budget spinning in place.
 - **Event notifications**: on convergence / needs-decision / circuit-open / repeated failure, it pings you through a channel you configure (e.g. email), so unattended never means out of the loop.
 - **Rubric quality self-check before freezing**: a bad rubric is a bad judge and wastes every round, so the rubric itself is checked against a quality checklist before it's locked.
@@ -67,27 +67,25 @@ After install, **restart your session** (the skill list is scanned at startup), 
 
 1. Invoke it and state your goal.
 2. **Phase 0**: the skill spins up a dedicated, **git-managed task directory** for the goal, then works with you to break the goal into a checkable rubric, confirms and freezes it, and generates the per-round `iterate-prompt.md`. (If the goal is to work on an existing repo, it operates inside that repo instead.)
-3. **Phase 1**: start the unattended loop with the engine (run it in a persistent environment / tmux so disconnects don't matter). **Run from the galatea project root**. The engine auto-detects the backend: if only `claude` is found, it uses Claude Code; if only `codex` is found, it uses Codex; if both are available, it exits and requires you to explicitly set `GALATEA_AGENT_BACKEND`:
+3. **Phase 1**: start the unattended loop with the Phase 0-generated `galatea-run.sh` (run it in a persistent environment / tmux so disconnects don't matter). The script freezes the backend, model, flags, and PATH tweaks the user explicitly chose; do not rely on engine auto-detection.
+
+   Codex example:
 
    ```bash
+   export GALATEA_AGENT_BACKEND=codex
+   export GALATEA_CODEX_FLAGS='--dangerously-bypass-approvals-and-sandbox --model gpt-5.5'
    bash engine/loop.sh <goal-directory> [max-rounds]
    ```
 
-   To explicitly run each round through Codex:
+   Claude Code example:
 
    ```bash
-   GALATEA_AGENT_BACKEND=codex bash engine/loop.sh <goal-directory> [max-rounds]
+   export GALATEA_AGENT_BACKEND=claude
+   export GALATEA_CLAUDE_FLAGS='--dangerously-skip-permissions --model claude-opus-4-8'
+   bash engine/loop.sh <goal-directory> [max-rounds]
    ```
 
-   To explicitly run each round through Claude Code:
-
-   ```bash
-   GALATEA_AGENT_BACKEND=claude bash engine/loop.sh <goal-directory> [max-rounds]
-   ```
-
-   To make one backend your personal default, add `export GALATEA_AGENT_BACKEND=codex` or `export GALATEA_AGENT_BACKEND=claude` to your shell profile.
-
-   The engine repeatedly runs one round with a fresh context; it backs off exponentially on usage limits, halts itself if there's no progress for several rounds, and exits automatically once converged. Each round's output lands in `<goal-directory>/logs/` for post-mortems.
+   If the backend executable is not on the default `PATH`, write the user-provided `export PATH=...:$PATH` into `galatea-run.sh`. The engine repeatedly runs one round with a fresh context; it backs off exponentially on usage limits, halts itself if there's no progress for several rounds, and exits automatically once converged. Each round's output lands in `<goal-directory>/logs/` for post-mortems.
    For notifications, point the `GALATEA_NOTIFY_CMD` env var at your own notify command (see the email example in `engine/notify.sh`).
 
 ## Safety
@@ -108,6 +106,7 @@ galatea/
 │  ├─ rubric.template.md     # Checkable rubric (frozen in Phase 0)
 │  ├─ iterate-prompt.template.md   # Per-round instruction (executed repeatedly in Phase 1)
 │  ├─ finalize-prompt.template.md  # Post-convergence wrap-up instruction
+│  ├─ galatea-run.template.sh      # Launcher script freezing backend / model / flags
 │  ├─ state.template.md      # Cross-round memory: current state snapshot
 │  ├─ log.template.md        # Cross-round memory: append-only round log
 │  ├─ pending.template.md    # Items needing your decision
